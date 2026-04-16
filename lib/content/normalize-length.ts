@@ -56,7 +56,11 @@ function trimLongestSection(draft: DailyEssayDraft) {
 function expandBestSection(draft: DailyEssayDraft) {
   const sections = [...draft.sections];
   const index = 0;
-  const practicalSentence = `In ordinary life, this matters whenever a person is tempted to protect convenience, image, or comfort at the expense of steadier conduct. ${draft.takeaways[0]}`;
+  const practicalSentence = [
+    `Seen from the angle of ${draft.metadata.thinkerOrExperiment}, the pressure point is not abstract morality but the way this choice trains perception, attention, and character.`,
+    `The tension returns whenever someone is tempted to trade ${draft.metadata.behaviorLink.toLowerCase()} for convenience, status, or self-protection.`,
+    draft.takeaways[0]
+  ].join(" ");
   sections[index] = {
     ...sections[index],
     body: `${sections[index].body} ${practicalSentence}`

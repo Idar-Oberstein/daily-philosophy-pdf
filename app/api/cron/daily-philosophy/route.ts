@@ -8,6 +8,7 @@ import { sendEssayEmail } from "@/lib/email/send-email";
 import { logError, logInfo, logWarn } from "@/lib/logging";
 import { generateDraft } from "@/lib/openai/generate-draft";
 import { repairDraft } from "@/lib/openai/repair-draft";
+import { refineDraft } from "@/lib/openai/refine-draft";
 import { type GeneratedDraftResult } from "@/lib/openai/schema";
 import { renderEssayPdf } from "@/lib/pdf/render-pdf";
 import {
@@ -213,7 +214,23 @@ export async function GET(request: Request) {
       throw new Error("Essay generation produced no draft");
     }
 
-    const normalized = normalizeEssayDraft(generation.draft);
+    const refined = await refineDraft({
+      draft: generation.draft,
+      topic
+    });
+
+    const workingDraft = refined.ok ? refined.draft : generation.draft;
+    if (!refined.ok) {
+      logWarn("essay.refinement_skipped", {
+        dateKey,
+        phase: "refinement",
+        topicId,
+        openaiRequestId: refined.openaiRequestId,
+        message: refined.message
+      });
+    }
+
+    const normalized = normalizeEssayDraft(workingDraft);
     const draft = normalized.draft;
     wordCount = normalized.wordCount;
     const pdfBuffer = await renderEssayPdf(draft, {

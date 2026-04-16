@@ -30,6 +30,23 @@ function dateKeyFromNow() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function isTestRun(request: Request) {
+  const url = new URL(request.url);
+  return url.searchParams.get("test") === "1";
+}
+
+function buildSendModeLabel(isTest: boolean) {
+  return isTest ? "test" : "scheduled";
+}
+
+function buildIdempotencyKey(dateKey: string, isTest: boolean) {
+  if (!isTest) {
+    return `daily-philosophy-${dateKey}`;
+  }
+
+  return `daily-philosophy-test-${dateKey}-${Date.now()}-${crypto.randomUUID()}`;
+}
+
 function formatDateLabel(dateKey: string) {
   return new Date(`${dateKey}T00:00:00.000Z`).toLocaleDateString("en-US", {
     year: "numeric",
@@ -57,27 +74,32 @@ function missingConfigFields(error: ZodError) {
 
 async function recordValidationFailure(params: {
   dateKey: string;
+  testRun: boolean;
+  mode: string;
   topicId: string | null;
   topicCluster: string | null;
   openaiRequestId: string | null;
   repairOpenaiRequestId: string | null;
   message: string;
 }) {
-  await writeFailureRecord(params.dateKey, {
-    title: "Daily Philosophy validation failed",
-    topicId: params.topicId ?? "unknown",
-    cluster: params.topicCluster ?? "unknown",
-    model: process.env.OPENAI_MODEL ?? "gpt-5.4-mini",
-    openaiRequestId: params.openaiRequestId,
-    repairOpenaiRequestId: params.repairOpenaiRequestId,
-    resendEmailId: null,
-    wordCount: 0,
-    errorCode: "validation_failed",
-    errorMessage: params.message
-  });
+  if (!params.testRun) {
+    await writeFailureRecord(params.dateKey, {
+      title: "Daily Philosophy validation failed",
+      topicId: params.topicId ?? "unknown",
+      cluster: params.topicCluster ?? "unknown",
+      model: process.env.OPENAI_MODEL ?? "gpt-5.4-mini",
+      openaiRequestId: params.openaiRequestId,
+      repairOpenaiRequestId: params.repairOpenaiRequestId,
+      resendEmailId: null,
+      wordCount: 0,
+      errorCode: "validation_failed",
+      errorMessage: params.message
+    });
+  }
 
   logWarn("essay.validation_failed", {
     dateKey: params.dateKey,
+    mode: params.mode,
     phase: "generation",
     topicId: params.topicId,
     errorCode: "validation_failed",
@@ -90,6 +112,8 @@ async function recordValidationFailure(params: {
 
 export async function GET(request: Request) {
   const dateKey = dateKeyFromNow();
+  const testRun = isTestRun(request);
+  const mode = buildSendModeLabel(testRun);
   const configResult = getConfigResult();
 
   if (!configResult.ok) {
@@ -97,6 +121,7 @@ export async function GET(request: Request) {
 
     logError("essay.misconfigured", {
       dateKey,
+      mode,
       phase: "config",
       errorCode: "config_invalid",
       message: "Required environment variables are missing or invalid.",
@@ -117,6 +142,7 @@ export async function GET(request: Request) {
     logWarn("cron.unauthorized", {
       dateKey,
       phase: "auth",
+      mode,
       errorCode: "cron_auth_failed"
     });
 
@@ -126,9 +152,10 @@ export async function GET(request: Request) {
     );
   }
 
-  if (await hasSuccessfulSend(dateKey)) {
+  if (!testRun && (await hasSuccessfulSend(dateKey))) {
     logInfo("essay.skipped", {
       dateKey,
+      mode,
       phase: "preflight",
       reason: "already_sent"
     });
@@ -139,10 +166,12 @@ export async function GET(request: Request) {
     });
   }
 
-  const lockAcquired = await acquireSendLock(dateKey);
+  const lockKeyDate = testRun ? `${dateKey}:test` : dateKey;
+  const lockAcquired = await acquireSendLock(lockKeyDate);
   if (!lockAcquired) {
     logInfo("essay.skipped", {
       dateKey,
+      mode,
       phase: "preflight",
       reason: "already_running"
     });
@@ -168,6 +197,7 @@ export async function GET(request: Request) {
 
     logInfo("essay.topic_selected", {
       dateKey,
+      mode,
       phase: "selection",
       topicId,
       cluster: topic.cluster
@@ -187,6 +217,8 @@ export async function GET(request: Request) {
         repairOpenaiRequestId = repaired.repairOpenaiRequestId;
         await recordValidationFailure({
           dateKey,
+          testRun,
+          mode,
           topicId,
           topicCluster,
           openaiRequestId,
@@ -223,6 +255,7 @@ export async function GET(request: Request) {
     if (!refined.ok) {
       logWarn("essay.refinement_skipped", {
         dateKey,
+        mode,
         phase: "refinement",
         topicId,
         openaiRequestId: refined.openaiRequestId,
@@ -239,17 +272,23 @@ export async function GET(request: Request) {
     });
 
     const emailResult = await sendEssayEmail({
-      subject: `Daily Philosophy: ${draft.title}`,
+      subject: testRun
+        ? `Daily Philosophy Test: ${draft.title}`
+        : `Daily Philosophy: ${draft.title}`,
       text: [
-        `Today's essay is attached as a PDF.`,
+        testRun
+          ? `This is a manual test run of your daily philosophy essay.`
+          : `Today's essay is attached as a PDF.`,
         "",
         draft.subtitle,
         "",
         `Theme: ${draft.metadata.thinkerOrExperiment}`
       ].join("\n"),
-      filename: `philosophy-${dateKey}.pdf`,
+      filename: testRun
+        ? `philosophy-test-${dateKey}.pdf`
+        : `philosophy-${dateKey}.pdf`,
       pdfBuffer,
-      idempotencyKey: `daily-philosophy-${dateKey}`
+      idempotencyKey: buildIdempotencyKey(dateKey, testRun)
     });
     resendEmailId = emailResult.resendEmailId;
 
@@ -267,11 +306,14 @@ export async function GET(request: Request) {
       wordCount
     };
 
-    await markSuccessfulSend(record);
-    await appendSendHistory(record);
+    if (!testRun) {
+      await markSuccessfulSend(record);
+      await appendSendHistory(record);
+    }
 
     logInfo("essay.sent", {
       dateKey,
+      mode,
       phase: "complete",
       topicId: draft.metadata.topicId,
       openaiRequestId,
@@ -282,6 +324,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       status: "sent",
+      mode,
       dateKey,
       topicId: draft.metadata.topicId,
       resendEmailId
@@ -301,10 +344,13 @@ export async function GET(request: Request) {
       errorMessage
     };
 
-    await writeFailureRecord(dateKey, failureRecordBase);
+    if (!testRun) {
+      await writeFailureRecord(dateKey, failureRecordBase);
+    }
 
     logError("essay.failed", {
       dateKey,
+      mode,
       phase: "run",
       topicId,
       errorCode: "run_failed",
@@ -320,6 +366,6 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   } finally {
-    await releaseSendLock(dateKey);
+    await releaseSendLock(lockKeyDate);
   }
 }

@@ -1,9 +1,7 @@
 import "server-only";
 
-import { getConfig } from "@/lib/config";
-
-export function isAuthorizedCronRequest(request: Request) {
+export function isAuthorizedCronRequest(request: Request, cronSecret: string) {
   const authHeader = request.headers.get("authorization");
-  const expected = `Bearer ${getConfig().CRON_SECRET}`;
+  const expected = `Bearer ${cronSecret}`;
   return authHeader === expected;
 }

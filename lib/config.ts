@@ -1,6 +1,6 @@
 import "server-only";
 
-import { z } from "zod";
+import { ZodError, z } from "zod";
 
 const EnvSchema = z.object({
   OPENAI_API_KEY: z.string().min(1),
@@ -16,12 +16,44 @@ const EnvSchema = z.object({
 export type AppConfig = z.infer<typeof EnvSchema>;
 
 let cachedConfig: AppConfig | null = null;
+let cachedError: ZodError | null = null;
 
-export function getConfig(): AppConfig {
+export function getConfigResult() {
   if (cachedConfig) {
-    return cachedConfig;
+    return {
+      ok: true as const,
+      config: cachedConfig
+    };
   }
 
-  cachedConfig = EnvSchema.parse(process.env);
-  return cachedConfig;
+  if (cachedError) {
+    return {
+      ok: false as const,
+      error: cachedError
+    };
+  }
+
+  const result = EnvSchema.safeParse(process.env);
+  if (result.success) {
+    cachedConfig = result.data;
+    return {
+      ok: true as const,
+      config: cachedConfig
+    };
+  }
+
+  cachedError = result.error;
+  return {
+    ok: false as const,
+    error: cachedError
+  };
+}
+
+export function getConfig(): AppConfig {
+  const result = getConfigResult();
+  if (result.ok) {
+    return result.config;
+  }
+
+  throw result.error;
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
+import { getConfigResult } from "@/lib/config";
 import { normalizeEssayDraft } from "@/lib/content/normalize-length";
 import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { sendEssayEmail } from "@/lib/email/send-email";
@@ -49,6 +50,10 @@ function validationSummary(error: unknown) {
   return "Unknown validation failure";
 }
 
+function missingConfigFields(error: ZodError) {
+  return error.issues.map((issue) => issue.path.join(".")).filter(Boolean);
+}
+
 async function recordValidationFailure(params: {
   dateKey: string;
   topicId: string | null;
@@ -84,8 +89,30 @@ async function recordValidationFailure(params: {
 
 export async function GET(request: Request) {
   const dateKey = dateKeyFromNow();
+  const configResult = getConfigResult();
 
-  if (!isAuthorizedCronRequest(request)) {
+  if (!configResult.ok) {
+    const missingFields = missingConfigFields(configResult.error);
+
+    logError("essay.misconfigured", {
+      dateKey,
+      phase: "config",
+      errorCode: "config_invalid",
+      message: "Required environment variables are missing or invalid.",
+      missingFields
+    });
+
+    return NextResponse.json(
+      {
+        status: "error",
+        reason: "misconfigured",
+        missingFields
+      },
+      { status: 503 }
+    );
+  }
+
+  if (!isAuthorizedCronRequest(request, configResult.config.CRON_SECRET)) {
     logWarn("cron.unauthorized", {
       dateKey,
       phase: "auth",

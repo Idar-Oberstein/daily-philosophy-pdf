@@ -7,8 +7,7 @@ import {
   buildTopicMetadata,
   DAILY_ESSAY_JSON_SCHEMA,
   DailyEssayDraftSchema,
-  StructuredOutputValidationError,
-  type GeneratedDraftResult
+  type DraftGenerationAttempt
 } from "@/lib/openai/schema";
 import type { TopicSeed } from "@/lib/topics/types";
 
@@ -59,7 +58,7 @@ function extractRawText(response: RawModelResponse) {
   return response.output_text.trim();
 }
 
-export async function generateDraft(topic: TopicSeed): Promise<GeneratedDraftResult> {
+export async function generateDraft(topic: TopicSeed): Promise<DraftGenerationAttempt> {
   const response = (await getOpenAIClient().responses.create({
     model: getConfig().OPENAI_MODEL,
     reasoning: { effort: "low" },
@@ -80,18 +79,20 @@ export async function generateDraft(topic: TopicSeed): Promise<GeneratedDraftRes
     const draft = DailyEssayDraftSchema.parse(parsed);
 
     return {
+      ok: true,
       draft,
       openaiRequestId: response._request_id ?? null,
       repairOpenaiRequestId: null,
       rawOutput
     };
   } catch (error) {
-    throw new StructuredOutputValidationError(
-      error instanceof Error ? error.message : "Structured output validation failed",
-      {
-        rawOutput,
-        openaiRequestId: response._request_id ?? null
-      }
-    );
+    return {
+      ok: false,
+      errorCode: "validation_failed",
+      message:
+        error instanceof Error ? error.message : "Structured output validation failed",
+      rawOutput,
+      openaiRequestId: response._request_id ?? null
+    };
   }
 }

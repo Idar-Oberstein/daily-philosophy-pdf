@@ -7,8 +7,8 @@ import { getConfig } from "@/lib/config";
 import {
   DAILY_ESSAY_JSON_SCHEMA,
   DailyEssayDraftSchema,
-  StructuredOutputValidationError,
-  type DailyEssayDraft
+  type DailyEssayDraft,
+  type ValidationFailureResult
 } from "@/lib/openai/schema";
 
 type RawModelResponse = {
@@ -46,10 +46,13 @@ export async function repairDraft(
   invalidOutput: string,
   error: unknown
 ): Promise<{
+  ok: true;
   draft: DailyEssayDraft;
   repairOpenaiRequestId: string | null;
   rawOutput: string;
-}> {
+} | (ValidationFailureResult & {
+  repairOpenaiRequestId: string | null;
+})> {
   const response = (await getOpenAIClient().responses.create({
     model: getConfig().OPENAI_MODEL,
     reasoning: { effort: "low" },
@@ -80,19 +83,22 @@ export async function repairDraft(
     const draft = DailyEssayDraftSchema.parse(parsed);
 
     return {
+      ok: true,
       draft,
       repairOpenaiRequestId: response._request_id ?? null,
       rawOutput
     };
   } catch (repairError) {
-    throw new StructuredOutputValidationError(
-      repairError instanceof Error
-        ? repairError.message
-        : "Structured output repair validation failed",
-      {
-        rawOutput,
-        openaiRequestId: response._request_id ?? null
-      }
-    );
+    return {
+      ok: false,
+      errorCode: "validation_failed",
+      message:
+        repairError instanceof Error
+          ? repairError.message
+          : "Structured output repair validation failed",
+      rawOutput,
+      openaiRequestId: response._request_id ?? null,
+      repairOpenaiRequestId: response._request_id ?? null
+    };
   }
 }

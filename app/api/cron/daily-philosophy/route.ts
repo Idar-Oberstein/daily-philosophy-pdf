@@ -7,10 +7,7 @@ import { sendEssayEmail } from "@/lib/email/send-email";
 import { logError, logInfo, logWarn } from "@/lib/logging";
 import { generateDraft } from "@/lib/openai/generate-draft";
 import { repairDraft } from "@/lib/openai/repair-draft";
-import {
-  StructuredOutputValidationError,
-  type GeneratedDraftResult
-} from "@/lib/openai/schema";
+import { type GeneratedDraftResult } from "@/lib/openai/schema";
 import { renderEssayPdf } from "@/lib/pdf/render-pdf";
 import {
   acquireSendLock,
@@ -50,6 +47,39 @@ function validationSummary(error: unknown) {
   }
 
   return "Unknown validation failure";
+}
+
+async function recordValidationFailure(params: {
+  dateKey: string;
+  topicId: string | null;
+  topicCluster: string | null;
+  openaiRequestId: string | null;
+  repairOpenaiRequestId: string | null;
+  message: string;
+}) {
+  await writeFailureRecord(params.dateKey, {
+    title: "Daily Philosophy validation failed",
+    topicId: params.topicId ?? "unknown",
+    cluster: params.topicCluster ?? "unknown",
+    model: process.env.OPENAI_MODEL ?? "gpt-5.4-mini",
+    openaiRequestId: params.openaiRequestId,
+    repairOpenaiRequestId: params.repairOpenaiRequestId,
+    resendEmailId: null,
+    wordCount: 0,
+    errorCode: "validation_failed",
+    errorMessage: params.message
+  });
+
+  logWarn("essay.validation_failed", {
+    dateKey: params.dateKey,
+    phase: "generation",
+    topicId: params.topicId,
+    errorCode: "validation_failed",
+    message: params.message,
+    openaiRequestId: params.openaiRequestId,
+    repairOpenaiRequestId: params.repairOpenaiRequestId,
+    resendEmailId: null
+  });
 }
 
 export async function GET(request: Request) {
@@ -116,32 +146,40 @@ export async function GET(request: Request) {
     });
 
     let generation: GeneratedDraftResult | null = null;
-    try {
-      generation = await generateDraft(topic);
-      openaiRequestId = generation.openaiRequestId;
-    } catch (error) {
-      if (error instanceof StructuredOutputValidationError) {
-        openaiRequestId = error.openaiRequestId;
-        let repaired;
-        try {
-          repaired = await repairDraft(error.rawOutput, error);
-        } catch (repairError) {
-          if (repairError instanceof StructuredOutputValidationError) {
-            repairOpenaiRequestId = repairError.openaiRequestId;
-          }
+    const firstAttempt = await generateDraft(topic);
 
-          throw repairError;
-        }
-        generation = {
-          draft: repaired.draft,
-          openaiRequestId: error.openaiRequestId,
-          repairOpenaiRequestId: repaired.repairOpenaiRequestId,
-          rawOutput: repaired.rawOutput
-        };
+    if (firstAttempt.ok) {
+      generation = firstAttempt;
+      openaiRequestId = firstAttempt.openaiRequestId;
+    } else {
+      openaiRequestId = firstAttempt.openaiRequestId;
+      const repaired = await repairDraft(firstAttempt.rawOutput, firstAttempt.message);
+
+      if (!repaired.ok) {
         repairOpenaiRequestId = repaired.repairOpenaiRequestId;
-      } else {
-        throw error;
+        await recordValidationFailure({
+          dateKey,
+          topicId,
+          topicCluster,
+          openaiRequestId,
+          repairOpenaiRequestId,
+          message: repaired.message
+        });
+
+        return NextResponse.json(
+          { status: "error", reason: "validation_failed", dateKey },
+          { status: 500 }
+        );
       }
+
+      generation = {
+        ok: true,
+        draft: repaired.draft,
+        openaiRequestId,
+        repairOpenaiRequestId: repaired.repairOpenaiRequestId,
+        rawOutput: repaired.rawOutput
+      };
+      repairOpenaiRequestId = repaired.repairOpenaiRequestId;
     }
 
     if (!generation) {

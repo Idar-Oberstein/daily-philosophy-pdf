@@ -1,8 +1,23 @@
 :root {
   color-scheme: light;
   font-family: Georgia, "Times New Roman", serif;
-  background: #f6efe2;
-  color: #2d2418;
+  --bg-base: #f6f2ff;
+  --bg-surface: rgba(255, 255, 255, 0.92);
+  --bg-surface-strong: rgba(255, 255, 255, 0.98);
+  --bg-glass: rgba(247, 241, 255, 0.82);
+  --bg-note: linear-gradient(180deg, rgba(121, 66, 255, 0.12), rgba(149, 105, 255, 0.05));
+  --text-primary: #23113d;
+  --text-secondary: #4b2f74;
+  --text-soft: #6d52a0;
+  --border-soft: rgba(78, 34, 151, 0.12);
+  --shadow-soft: 0 24px 60px rgba(71, 31, 140, 0.14);
+  --purple-deep: #38106f;
+  --purple-main: #5b22b8;
+  --purple-bright: #7f45ee;
+  --purple-light: #b695ff;
+  --white: #ffffff;
+  background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 * {
@@ -17,8 +32,9 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top, rgba(170, 130, 73, 0.18), transparent 36%),
-    linear-gradient(180deg, #f7f1e7 0%, #ecdfc9 100%);
+    radial-gradient(circle at top, rgba(158, 109, 255, 0.32), transparent 34%),
+    radial-gradient(circle at 85% 15%, rgba(111, 49, 219, 0.22), transparent 22%),
+    linear-gradient(180deg, #fcfbff 0%, #efe7ff 48%, #f7f3ff 100%);
 }
 
 .site-header {
@@ -26,8 +42,8 @@ body {
   top: 0;
   z-index: 30;
   backdrop-filter: blur(14px);
-  background: rgba(247, 241, 231, 0.78);
-  border-bottom: 1px solid rgba(92, 66, 36, 0.08);
+  background: var(--bg-glass);
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .site-header-inner {
@@ -47,8 +63,8 @@ body {
 }
 
 .site-footer {
-  border-top: 1px solid rgba(92, 66, 36, 0.08);
-  background: rgba(255, 250, 242, 0.75);
+  border-top: 1px solid var(--border-soft);
+  background: rgba(246, 241, 255, 0.86);
 }
 
 .site-footer-inner {
@@ -101,7 +117,7 @@ ul {
   text-transform: uppercase;
   letter-spacing: 0.18em;
   font-size: 0.78rem;
-  color: #8f6432;
+  color: var(--purple-main);
 }
 
 .hero,
@@ -112,9 +128,9 @@ ul {
 .essay-card,
 .takeaways-card,
 .reflection-card {
-  border: 1px solid rgba(92, 66, 36, 0.1);
-  background: rgba(255, 251, 245, 0.9);
-  box-shadow: 0 24px 60px rgba(98, 72, 41, 0.11);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-soft);
 }
 
 .hero {
@@ -146,7 +162,7 @@ ul {
   flex: 0 0 auto;
   width: 152px;
   height: 122px;
-  filter: drop-shadow(0 18px 28px rgba(88, 58, 27, 0.16));
+  filter: drop-shadow(0 18px 28px rgba(88, 39, 177, 0.18));
 }
 
 .site-brand-compact .site-brand-mark {
@@ -162,14 +178,14 @@ ul {
 }
 
 .brand-shadow {
-  fill: rgba(143, 100, 50, 0.12);
+  fill: rgba(115, 63, 214, 0.14);
 }
 
 .brand-book-fill,
 .brand-face,
 .brand-bubble,
 .brand-cup-fill {
-  fill: #fff4e6;
+  fill: #fffaff;
 }
 
 .brand-book-line,
@@ -179,7 +195,7 @@ ul {
 .brand-bulb-line,
 .brand-bubble-line {
   fill: none;
-  stroke: #6b3423;
+  stroke: var(--purple-deep);
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -197,24 +213,24 @@ ul {
 }
 
 .brand-book-fill {
-  stroke: #c98d39;
+  stroke: var(--purple-bright);
   stroke-width: 2;
 }
 
 .brand-bulb-glow {
-  fill: rgba(255, 196, 72, 0.18);
+  fill: rgba(182, 149, 255, 0.28);
 }
 
 .brand-bulb {
-  fill: #ffd45c;
-  stroke: #d8901d;
+  fill: #d7c2ff;
+  stroke: var(--purple-main);
   stroke-width: 3.5;
 }
 
 .brand-spark-line,
 .brand-star {
-  fill: #e29a18;
-  stroke: #e29a18;
+  fill: var(--purple-bright);
+  stroke: var(--purple-bright);
   stroke-width: 3.5;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -224,14 +240,14 @@ ul {
 .brand-beard,
 .brand-bubble,
 .brand-cup-fill {
-  stroke: #6b3423;
+  stroke: var(--purple-deep);
   stroke-width: 4;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .brand-beard {
-  fill: #fffaf2;
+  fill: #ffffff;
 }
 
 .site-brand-copy {
@@ -255,11 +271,11 @@ ul {
 }
 
 .site-brand-name-top {
-  color: #5b2718;
+  color: var(--purple-deep);
 }
 
 .site-brand-name-bottom {
-  color: #e1971e;
+  color: var(--purple-bright);
 }
 
 .site-brand-compact .site-brand-name-top,
@@ -269,7 +285,7 @@ ul {
 
 .site-brand-tag {
   font-size: 0.92rem;
-  color: #7a5a35;
+  color: var(--text-soft);
 }
 
 .site-brand-compact .site-brand-tag {
@@ -279,7 +295,7 @@ ul {
 .author-credit {
   margin: 0.45rem 0 0;
   font-size: 0.98rem;
-  color: #7a5a35;
+  color: var(--text-soft);
 }
 
 .author-credit-compact {
@@ -293,16 +309,16 @@ ul {
   gap: 0.65rem;
   padding: 0.55rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(92, 66, 36, 0.12);
-  background: rgba(255, 250, 242, 0.95);
-  color: #224d8d;
+  border: 1px solid rgba(10, 102, 194, 0.18);
+  background: var(--bg-surface-strong);
+  color: #0a66c2;
   font-weight: 700;
 }
 
 .linkedin-link-compact {
   padding: 0.35rem;
   background: transparent;
-  border-color: rgba(92, 66, 36, 0.08);
+  border-color: rgba(10, 102, 194, 0.14);
 }
 
 .linkedin-link svg {
@@ -335,7 +351,7 @@ ul {
 .essay-intro p,
 .archive-header p {
   max-width: 65ch;
-  color: #45382a;
+  color: var(--text-secondary);
 }
 
 .hero-actions,
@@ -364,15 +380,15 @@ ul {
 }
 
 .button-primary {
-  background: #6d4922;
-  color: #fffdf8;
-  box-shadow: 0 14px 30px rgba(88, 58, 27, 0.26);
+  background: linear-gradient(135deg, var(--purple-main), var(--purple-bright));
+  color: var(--white);
+  box-shadow: 0 16px 32px rgba(84, 33, 176, 0.28);
 }
 
 .button-secondary {
-  background: rgba(255, 250, 242, 0.95);
-  color: #4f3922;
-  border: 1px solid rgba(92, 66, 36, 0.15);
+  background: var(--bg-surface-strong);
+  color: var(--purple-deep);
+  border: 1px solid rgba(91, 34, 184, 0.14);
 }
 
 .button-primary:hover,
@@ -384,16 +400,14 @@ ul {
 .hero-note {
   padding: 1.5rem;
   border-radius: 1.5rem;
-  background:
-    linear-gradient(180deg, rgba(131, 93, 46, 0.08), rgba(131, 93, 46, 0.02)),
-    rgba(255, 248, 239, 0.92);
+  background: var(--bg-note), rgba(255, 255, 255, 0.82);
 }
 
 .hero-note-label {
   margin: 0 0 0.8rem;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #6b4a23;
+  color: var(--purple-main);
 }
 
 .hero-list li + li {
@@ -432,7 +446,7 @@ ul {
 
 .essay-subtitle {
   margin-top: 0.75rem;
-  color: #5c4a35;
+  color: var(--text-secondary);
 }
 
 .essay-subtitle-large {
@@ -447,7 +461,7 @@ ul {
 .essay-date {
   margin: 0;
   font-size: 0.92rem;
-  color: #8f6432;
+  color: var(--purple-main);
 }
 
 .essay-meta {
@@ -462,8 +476,8 @@ ul {
   border-radius: 999px;
   padding: 0.35rem 0.7rem;
   font-size: 0.9rem;
-  color: #5a4227;
-  background: rgba(154, 118, 69, 0.12);
+  color: var(--purple-deep);
+  background: rgba(127, 69, 238, 0.11);
 }
 
 .essay-meta-wide {
@@ -473,7 +487,7 @@ ul {
 .essay-links a {
   font-size: 0.96rem;
   font-weight: 700;
-  color: #6d4922;
+  color: var(--purple-main);
 }
 
 .empty-card,
@@ -506,7 +520,7 @@ ul {
 }
 
 .essay-page-header {
-  border-bottom: 1px solid rgba(92, 66, 36, 0.12);
+  border-bottom: 1px solid var(--border-soft);
   padding-bottom: 1.5rem;
 }
 

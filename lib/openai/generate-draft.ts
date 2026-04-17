@@ -299,7 +299,7 @@ export async function generateDraft(topic: TopicSeed): Promise<DraftGenerationAt
 
   const response = (await getOpenAIClient().responses.create({
     model: getConfig().OPENAI_MODEL,
-    reasoning: { effort: "high" },
+    reasoning: { effort: "medium" },
     input: buildGenerationPrompt(topic, libraryContext.sourceNotes),
     text: {
       format: {

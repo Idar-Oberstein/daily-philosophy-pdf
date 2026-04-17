@@ -173,11 +173,11 @@ export async function retrieveLibraryContext(topic: TopicSeed): Promise<Retrieve
     }))
     .filter((entry) => entry.score > 0)
     .sort((left, right) => right.score - left.score)
-    .slice(0, 5)
+    .slice(0, 3)
     .map((entry) => entry.source);
 
   const shortlistedSources =
-    rankedSources.length > 0 ? rankedSources : libraryCatalog.slice(0, 4);
+    rankedSources.length > 0 ? rankedSources : libraryCatalog.slice(0, 3);
 
   const chunkCandidates: SourceChunk[] = [];
 
@@ -199,7 +199,7 @@ export async function retrieveLibraryContext(topic: TopicSeed): Promise<Retrieve
 
   const selectedChunks = chunkCandidates
     .sort((left, right) => right.score - left.score)
-    .slice(0, 6);
+    .slice(0, 4);
 
   if (selectedChunks.length === 0) {
     for (const source of shortlistedSources.slice(0, 3)) {

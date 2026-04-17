@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { PublishedEssayRecord } from "@/lib/archive/types";
 import { getRedis } from "@/lib/store/redis";
 
 export type SendRecord = {
@@ -14,6 +15,8 @@ export type SendRecord = {
   repairOpenaiRequestId: string | null;
   resendEmailId: string | null;
   wordCount: number;
+  archiveStatus?: "stored" | "pending" | "skipped";
+  archiveRecord?: PublishedEssayRecord | null;
   errorCode?: string;
   errorMessage?: string;
 };

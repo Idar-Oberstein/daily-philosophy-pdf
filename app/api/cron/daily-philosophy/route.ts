@@ -3,7 +3,11 @@ import { ZodError } from "zod";
 
 import { buildEssayPathname, buildEssaySlug } from "@/lib/archive/slug";
 import { isArchivePublishingEnabled, uploadEssayPdf } from "@/lib/archive/blob";
-import { upsertPublishedEssay } from "@/lib/archive/store";
+import {
+  enqueuePendingPublishedEssay,
+  reconcilePendingPublishedEssays,
+  upsertPublishedEssayWithRetry
+} from "@/lib/archive/store";
 import type { PublishedEssayRecord } from "@/lib/archive/types";
 import { getConfigResult } from "@/lib/config";
 import { normalizeEssayDraft } from "@/lib/content/normalize-length";
@@ -113,6 +117,36 @@ async function recordValidationFailure(params: {
   });
 }
 
+async function persistArchiveRecord(params: {
+  archiveRecord: PublishedEssayRecord;
+  dateKey: string;
+  mode: string;
+  topicId: string;
+}) {
+  try {
+    await upsertPublishedEssayWithRetry(params.archiveRecord, {
+      attempts: 3,
+      baseDelayMs: 150
+    });
+
+    return "stored" as const;
+  } catch (error) {
+    await enqueuePendingPublishedEssay(params.archiveRecord);
+
+    logWarn("essay.archive_pending", {
+      dateKey: params.dateKey,
+      mode: params.mode,
+      phase: "archive",
+      topicId: params.topicId,
+      slug: params.archiveRecord.slug,
+      errorCode: "archive_pending",
+      message: error instanceof Error ? error.message : "Archive persistence failed after retries"
+    });
+
+    return "pending" as const;
+  }
+}
+
 export async function GET(request: Request) {
   const dateKey = dateKeyFromNow();
   const testRun = isTestRun(request);
@@ -153,6 +187,28 @@ export async function GET(request: Request) {
       { status: "error", reason: "unauthorized" },
       { status: 401 }
     );
+  }
+
+  if (!testRun) {
+    try {
+      const repaired = await reconcilePendingPublishedEssays(6);
+      if (repaired > 0) {
+        logInfo("essay.archive_reconciled", {
+          dateKey,
+          mode,
+          phase: "archive",
+          repaired
+        });
+      }
+    } catch (error) {
+      logWarn("essay.archive_reconcile_failed", {
+        dateKey,
+        mode,
+        phase: "archive",
+        errorCode: "archive_reconcile_failed",
+        message: error instanceof Error ? error.message : "Archive reconciliation failed"
+      });
+    }
   }
 
   if (!testRun && (await hasSuccessfulSend(dateKey))) {
@@ -259,6 +315,7 @@ export async function GET(request: Request) {
     });
     const sentAt = new Date().toISOString();
     let archiveRecord: PublishedEssayRecord | null = null;
+    let archiveStatus: SendRecord["archiveStatus"] = testRun ? "skipped" : undefined;
 
     if (!testRun) {
       archiveSlug = buildEssaySlug(dateKey, draft.metadata.topicId);
@@ -294,6 +351,7 @@ export async function GET(request: Request) {
           pdfUrl: pdfPublication.url
         });
       } else {
+        archiveStatus = "skipped";
         logWarn("essay.archive_disabled", {
           dateKey,
           mode,
@@ -325,6 +383,15 @@ export async function GET(request: Request) {
     });
     resendEmailId = emailResult.resendEmailId;
 
+    if (!testRun && archiveRecord) {
+      archiveStatus = await persistArchiveRecord({
+        archiveRecord,
+        dateKey,
+        mode,
+        topicId: draft.metadata.topicId
+      });
+    }
+
     const record: SendRecord = {
       dateKey,
       title: draft.title,
@@ -336,16 +403,14 @@ export async function GET(request: Request) {
       openaiRequestId,
       repairOpenaiRequestId,
       resendEmailId,
-      wordCount
+      wordCount,
+      archiveStatus: archiveStatus ?? "skipped",
+      archiveRecord
     };
 
     if (!testRun) {
       await markSuccessfulSend(record);
       await appendSendHistory(record);
-
-      if (archiveRecord) {
-        await upsertPublishedEssay(archiveRecord);
-      }
     }
 
     logInfo("essay.sent", {

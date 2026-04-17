@@ -4,8 +4,8 @@ import { formatEssayDate } from "@/lib/archive/format";
 import { listPublishedEssays } from "@/lib/archive/store";
 
 export const metadata = {
-  title: "Archive | Daily Philosophy PDF",
-  description: "Browse every public Daily Philosophy essay and download each PDF."
+  title: "Archive | Philo-Snacks",
+  description: "Browse every public Philo-Snacks essay and download each PDF."
 };
 
 export default async function ArchivePage() {
@@ -15,11 +15,10 @@ export default async function ArchivePage() {
     <main className="page-shell">
       <section className="archive-header">
         <p className="eyebrow">Archive</p>
-        <h1>All published essays</h1>
+        <h1>The full Philo-Snacks archive</h1>
         <p className="hero-text">
-          Every entry here was generated, refined, rendered to PDF, and sent by
-          the daily essay service. Read them in the browser or download the PDF
-          version directly.
+          Every entry here can be read online or downloaded as a PDF. The aim
+          is not content volume, but a growing shelf of short, sharp philosophy.
         </p>
       </section>
 

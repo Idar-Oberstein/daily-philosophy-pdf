@@ -17,12 +17,12 @@ export async function generateMetadata({ params }: EssayPageProps): Promise<Meta
 
   if (!essay) {
     return {
-      title: "Essay not found | Daily Philosophy PDF"
+      title: "Essay not found | Philo-Snacks"
     };
   }
 
   return {
-    title: `${essay.title} | Daily Philosophy PDF`,
+    title: `${essay.title} | Philo-Snacks`,
     description: essay.subtitle
   };
 }
@@ -42,7 +42,7 @@ export default async function EssayPage({ params }: EssayPageProps) {
     <main className="page-shell">
       <article className="essay-page">
         <div className="essay-page-header">
-          <p className="eyebrow">Daily Philosophy Essay</p>
+          <p className="eyebrow">Philo-Snacks Essay</p>
           <p className="essay-date">{formatEssayDate(essay.dateKey)}</p>
           <h1>{essay.title}</h1>
           <p className="essay-subtitle essay-subtitle-large">{essay.subtitle}</p>

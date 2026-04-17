@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { SiteBrand } from "@/app/components/site-brand";
 import { formatEssayDate } from "@/lib/archive/format";
 import { listPublishedEssays } from "@/lib/archive/store";
 
@@ -10,12 +11,13 @@ export default async function HomePage() {
     <main className="page-shell">
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">Daily Philosophy PDF</p>
-          <h1>Public archive of daily philosophy essays</h1>
+          <SiteBrand />
+          <p className="eyebrow">Public Archive</p>
+          <h1>Short philosophy with teeth</h1>
           <p className="hero-text">
-            A living collection of readable essays on ethics, moral psychology,
-            character, honesty, fairness, and how to live a little better.
-            Every published entry can be read online or downloaded as a PDF.
+            A living archive of elegant essays on ethics, character, fairness,
+            power, and moral psychology. Every published entry can be read in
+            the browser or downloaded as a clean PDF.
           </p>
           <div className="hero-actions">
             <Link className="button-primary" href="/archive">
@@ -27,8 +29,8 @@ export default async function HomePage() {
           <p className="hero-note-label">What you will find</p>
           <ul className="hero-list">
             <li>Ancient and modern thinkers</li>
-            <li>Short, structured essays instead of academic papers</li>
-            <li>PDF downloads for each published piece</li>
+            <li>Serious public philosophy instead of generic self-help</li>
+            <li>Readable HTML pages and PDF downloads for every piece</li>
           </ul>
         </aside>
       </section>

@@ -1,17 +1,14 @@
 import "server-only";
 
-import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 
 import { libraryCatalog, type LibrarySource } from "@/lib/library/catalog";
 import type { TopicSeed } from "@/lib/topics/types";
 
 const require = createRequire(import.meta.url);
-const { PDFParse } = require("pdf-parse") as {
-  PDFParse: new (params: { data: Buffer }) => {
-    getText: () => Promise<{ text?: string }>;
-    destroy: () => Promise<void>;
-  };
+const PDFParser = require("pdf2json") as new () => {
+  on: (event: string, listener: (payload: any) => void) => void;
+  loadPDF: (filePath: string) => void;
 };
 
 type SourceChunk = {
@@ -72,16 +69,29 @@ async function extractSourceText(source: LibrarySource) {
   }
 
   const promise = (async () => {
-    const parser = new PDFParse({
-      data: await readFile(source.filePath)
-    });
+    const parser = new PDFParser();
 
-    try {
-      const result = await parser.getText();
-      return (result.text ?? "").replace(/\u0000/g, " ").trim();
-    } finally {
-      await parser.destroy();
-    }
+    return await new Promise<string>((resolve, reject) => {
+      parser.on("pdfParser_dataError", (error) => {
+        reject(new Error(String(error?.parserError ?? error)));
+      });
+
+      parser.on("pdfParser_dataReady", (data) => {
+        const pages = Array.isArray(data?.Pages) ? data.Pages : [];
+        type TextRun = { T?: string };
+        type TextNode = { R?: TextRun[] };
+        type PageNode = { Texts?: TextNode[] };
+        const text = pages
+          .flatMap((page: PageNode) => page.Texts ?? [])
+          .flatMap((textNode: TextNode) => textNode.R ?? [])
+          .map((run: TextRun) => decodeURIComponent(run.T ?? ""))
+          .join(" ");
+
+        resolve(text.replace(/\u0000/g, " ").trim());
+      });
+
+      parser.loadPDF(source.filePath);
+    });
   })();
 
   sourceTextCache.set(source.id, promise);

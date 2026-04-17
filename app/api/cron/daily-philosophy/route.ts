@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
+import { buildEssayPathname, buildEssaySlug } from "@/lib/archive/slug";
+import { isArchivePublishingEnabled, uploadEssayPdf } from "@/lib/archive/blob";
+import { upsertPublishedEssay } from "@/lib/archive/store";
+import type { PublishedEssayRecord } from "@/lib/archive/types";
 import { getConfigResult } from "@/lib/config";
 import { normalizeEssayDraft } from "@/lib/content/normalize-length";
 import { isAuthorizedCronRequest } from "@/lib/cron-auth";
@@ -188,6 +192,7 @@ export async function GET(request: Request) {
   let repairOpenaiRequestId: string | null = null;
   let resendEmailId: string | null = null;
   let wordCount = 0;
+  let archiveSlug: string | null = null;
 
   try {
     const history = await getRecentSendHistory(21);
@@ -270,6 +275,52 @@ export async function GET(request: Request) {
       dateLabel: formatDateLabel(dateKey),
       wordCount
     });
+    const sentAt = new Date().toISOString();
+    let archiveRecord: PublishedEssayRecord | null = null;
+
+    if (!testRun) {
+      archiveSlug = buildEssaySlug(dateKey, draft.metadata.topicId);
+
+      if (isArchivePublishingEnabled()) {
+        const pdfPublication = await uploadEssayPdf({
+          pathname: buildEssayPathname(dateKey, archiveSlug),
+          pdfBuffer
+        });
+
+        archiveRecord = {
+          slug: archiveSlug,
+          dateKey,
+          title: draft.title,
+          subtitle: draft.subtitle,
+          hook: draft.hook,
+          sections: draft.sections,
+          takeaways: draft.takeaways,
+          reflectionExercise: draft.reflectionExercise,
+          metadata: draft.metadata,
+          pdfUrl: pdfPublication.url,
+          pdfPathname: pdfPublication.pathname,
+          wordCount,
+          sentAt
+        };
+
+        logInfo("essay.archived", {
+          dateKey,
+          mode,
+          phase: "archive",
+          topicId: draft.metadata.topicId,
+          slug: archiveSlug,
+          pdfUrl: pdfPublication.url
+        });
+      } else {
+        logWarn("essay.archive_disabled", {
+          dateKey,
+          mode,
+          phase: "archive",
+          topicId: draft.metadata.topicId,
+          message: "Blob storage is not configured; skipping public publication."
+        });
+      }
+    }
 
     const emailResult = await sendEssayEmail({
       subject: testRun
@@ -298,7 +349,7 @@ export async function GET(request: Request) {
       topicId: draft.metadata.topicId,
       cluster: draft.metadata.cluster,
       model: process.env.OPENAI_MODEL ?? "gpt-5.4-mini",
-      sentAt: new Date().toISOString(),
+      sentAt,
       status: "sent",
       openaiRequestId,
       repairOpenaiRequestId,
@@ -309,6 +360,10 @@ export async function GET(request: Request) {
     if (!testRun) {
       await markSuccessfulSend(record);
       await appendSendHistory(record);
+
+      if (archiveRecord) {
+        await upsertPublishedEssay(archiveRecord);
+      }
     }
 
     logInfo("essay.sent", {
@@ -316,6 +371,7 @@ export async function GET(request: Request) {
       mode,
       phase: "complete",
       topicId: draft.metadata.topicId,
+      slug: archiveSlug,
       openaiRequestId,
       repairOpenaiRequestId,
       resendEmailId,

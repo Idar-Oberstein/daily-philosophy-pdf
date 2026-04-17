@@ -10,7 +10,8 @@ const EnvSchema = z.object({
   DAILY_ESSAY_TO_EMAIL: z.string().email(),
   CRON_SECRET: z.string().min(32),
   UPSTASH_REDIS_REST_URL: z.string().url(),
-  UPSTASH_REDIS_REST_TOKEN: z.string().min(1)
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
+  BLOB_READ_WRITE_TOKEN: z.string().min(1).optional()
 });
 
 export type AppConfig = z.infer<typeof EnvSchema>;

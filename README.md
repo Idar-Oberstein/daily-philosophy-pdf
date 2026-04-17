@@ -1,6 +1,7 @@
 # Daily Philosophy PDF
 
-Single-user Next.js service that generates and emails a daily philosophy PDF.
+Single-user Next.js service that generates a daily philosophy essay, emails the
+PDF version, and publishes finished essays to a public archive website.
 
 ## Stack
 
@@ -8,11 +9,18 @@ Single-user Next.js service that generates and emails a daily philosophy PDF.
 - OpenAI Responses API
 - Upstash Redis
 - Resend
+- Vercel Blob
 - `@react-pdf/renderer`
 
 ## Environment
 
 Copy `.env.example` to `.env.local` and fill in the values.
+
+Public archive note:
+
+- `BLOB_READ_WRITE_TOKEN` enables automatic publication of PDFs to Vercel Blob.
+- Without that token, the daily essay still sends by email, but the public
+  archive will remain empty.
 
 Important sender rule:
 
@@ -29,6 +37,13 @@ Security notes:
 
 `vercel.json` schedules the job daily at `05:00 UTC`.
 
-## Current local limitation
+## Public archive
 
-This workspace does not currently have `node` or `npm` installed, so dependency installation, test execution, and build verification still need to happen after a Node toolchain is available.
+Published essays appear on:
+
+- `/`
+- `/archive`
+- `/essay/[slug]`
+
+Each scheduled run uploads the PDF to Vercel Blob, stores the essay record in
+Upstash Redis, and exposes both the HTML reading view and PDF download link.

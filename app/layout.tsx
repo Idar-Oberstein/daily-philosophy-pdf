@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Daily Philosophy PDF",
-  description: "Automated daily philosophy essay generator."
+  description: "A public archive of daily philosophy essays and downloadable PDFs."
 };
 
 export default function RootLayout({

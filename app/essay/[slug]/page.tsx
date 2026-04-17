@@ -35,6 +35,9 @@ export default async function EssayPage({ params }: EssayPageProps) {
     notFound();
   }
 
+  const getSectionText = (section: (typeof essay.sections)[number]) =>
+    section.content ?? section.body ?? "";
+
   return (
     <main className="page-shell">
       <article className="essay-page">
@@ -66,9 +69,8 @@ export default async function EssayPage({ params }: EssayPageProps) {
         <div className="essay-sections">
           {essay.sections.map((section) => (
             <section className="essay-section" key={section.heading}>
-              <p className="section-purpose">{section.purpose}</p>
               <h2>{section.heading}</h2>
-              <p>{section.body}</p>
+              <p>{getSectionText(section)}</p>
             </section>
           ))}
         </div>

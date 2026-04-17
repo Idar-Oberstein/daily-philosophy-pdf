@@ -2,10 +2,18 @@ import { z } from "zod";
 
 import type { TopicSeed } from "@/lib/topics/types";
 
-export const DailyEssaySectionSchema = z.object({
+export const ModelEssaySectionSchema = z.object({
   heading: z.string().min(3).max(120),
-  purpose: z.string().min(8).max(200),
-  body: z.string().min(40).max(1200)
+  content: z.string().min(120).max(2200)
+});
+
+export const ModelEssayDraftSchema = z.object({
+  title: z.string().min(8).max(140),
+  subtitle: z.string().min(12).max(220),
+  hook: z.string().min(80).max(1200),
+  sections: z.array(ModelEssaySectionSchema).min(3).max(5),
+  takeaways: z.array(z.string().min(20).max(260)).length(3),
+  reflection_exercise: z.string().min(60).max(500)
 });
 
 export const DailyEssayMetadataSchema = z.object({
@@ -16,19 +24,25 @@ export const DailyEssayMetadataSchema = z.object({
   behaviorLink: z.string().min(1)
 });
 
+export const DailyEssaySectionSchema = z.object({
+  heading: z.string().min(3).max(120),
+  content: z.string().min(120).max(2200)
+});
+
 export const DailyEssayDraftSchema = z.object({
-  title: z.string().min(4).max(120),
-  subtitle: z.string().min(8).max(180),
-  hook: z.string().min(24).max(500),
+  title: z.string().min(8).max(140),
+  subtitle: z.string().min(12).max(220),
+  hook: z.string().min(80).max(1200),
   sections: z.array(DailyEssaySectionSchema).min(3).max(5),
-  takeaways: z.array(z.string().min(8).max(200)).min(3).max(5),
-  reflectionExercise: z.string().min(24).max(400),
+  takeaways: z.array(z.string().min(20).max(260)).length(3),
+  reflectionExercise: z.string().min(60).max(500),
   metadata: DailyEssayMetadataSchema
 });
 
+export type ModelEssayDraft = z.infer<typeof ModelEssayDraftSchema>;
 export type DailyEssayDraft = z.infer<typeof DailyEssayDraftSchema>;
 
-export const DAILY_ESSAY_JSON_SCHEMA = {
+export const MODEL_ESSAY_JSON_SCHEMA = {
   type: "object",
   additionalProperties: false,
   required: [
@@ -37,13 +51,12 @@ export const DAILY_ESSAY_JSON_SCHEMA = {
     "hook",
     "sections",
     "takeaways",
-    "reflectionExercise",
-    "metadata"
+    "reflection_exercise"
   ],
   properties: {
-    title: { type: "string", minLength: 4, maxLength: 120 },
-    subtitle: { type: "string", minLength: 8, maxLength: 180 },
-    hook: { type: "string", minLength: 24, maxLength: 500 },
+    title: { type: "string", minLength: 8, maxLength: 140 },
+    subtitle: { type: "string", minLength: 12, maxLength: 220 },
+    hook: { type: "string", minLength: 80, maxLength: 1200 },
     sections: {
       type: "array",
       minItems: 3,
@@ -51,37 +64,24 @@ export const DAILY_ESSAY_JSON_SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["heading", "purpose", "body"],
+        required: ["heading", "content"],
         properties: {
           heading: { type: "string", minLength: 3, maxLength: 120 },
-          purpose: { type: "string", minLength: 8, maxLength: 200 },
-          body: { type: "string", minLength: 40, maxLength: 1200 }
+          content: { type: "string", minLength: 120, maxLength: 2200 }
         }
       }
     },
     takeaways: {
       type: "array",
       minItems: 3,
-      maxItems: 5,
+      maxItems: 3,
       items: {
         type: "string",
-        minLength: 8,
-        maxLength: 200
+        minLength: 20,
+        maxLength: 260
       }
     },
-    reflectionExercise: { type: "string", minLength: 24, maxLength: 400 },
-    metadata: {
-      type: "object",
-      additionalProperties: false,
-      required: ["topicId", "cluster", "thinkerOrExperiment", "angle", "behaviorLink"],
-      properties: {
-        topicId: { type: "string", minLength: 1 },
-        cluster: { type: "string", minLength: 1 },
-        thinkerOrExperiment: { type: "string", minLength: 1 },
-        angle: { type: "string", minLength: 1 },
-        behaviorLink: { type: "string", minLength: 1 }
-      }
-    }
+    reflection_exercise: { type: "string", minLength: 60, maxLength: 500 }
   }
 } as const;
 
@@ -111,4 +111,19 @@ export function buildTopicMetadata(topic: TopicSeed) {
     angle: topic.angle,
     behaviorLink: topic.behaviorLink
   };
+}
+
+export function attachMetadataToDraft(
+  draft: ModelEssayDraft,
+  topic: TopicSeed
+): DailyEssayDraft {
+  return DailyEssayDraftSchema.parse({
+    title: draft.title,
+    subtitle: draft.subtitle,
+    hook: draft.hook,
+    sections: draft.sections,
+    takeaways: draft.takeaways,
+    reflectionExercise: draft.reflection_exercise,
+    metadata: buildTopicMetadata(topic)
+  });
 }

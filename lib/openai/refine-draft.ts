@@ -3,9 +3,11 @@ import "server-only";
 import OpenAI from "openai";
 
 import { getConfig } from "@/lib/config";
+import { retrieveLibraryContext } from "@/lib/library/retrieve";
 import {
-  DAILY_ESSAY_JSON_SCHEMA,
-  DailyEssayDraftSchema,
+  attachMetadataToDraft,
+  MODEL_ESSAY_JSON_SCHEMA,
+  ModelEssayDraftSchema,
   type DailyEssayDraft
 } from "@/lib/openai/schema";
 import type { TopicSeed } from "@/lib/topics/types";
@@ -32,41 +34,55 @@ function getOpenAIClient() {
 export async function refineDraft(params: {
   draft: DailyEssayDraft;
   topic: TopicSeed;
-}): Promise<{
-  ok: true;
-  draft: DailyEssayDraft;
-  openaiRequestId: string | null;
-  rawOutput: string;
-} | {
-  ok: false;
-  message: string;
-  openaiRequestId: string | null;
-}> {
+}): Promise<
+  | {
+      ok: true;
+      draft: DailyEssayDraft;
+      openaiRequestId: string | null;
+      rawOutput: string;
+    }
+  | {
+      ok: false;
+      message: string;
+      openaiRequestId: string | null;
+    }
+> {
+  const libraryContext = await retrieveLibraryContext(params.topic);
+
   const response = (await getOpenAIClient().responses.create({
     model: getConfig().OPENAI_MODEL,
     reasoning: { effort: "medium" },
     input: [
-      "Rewrite and strengthen this structured philosophy essay while preserving the same JSON schema and the same metadata.",
-      "Keep the subject and core idea, but improve the language, specificity, philosophical sharpness, and readability.",
-      "Make it feel less generic, less blog-like, and less like self-help.",
-      "Use clearer argumentative movement, more concrete examples, and more memorable phrasing.",
-      "Do not add fake citations or claims of research you cannot support.",
-      "Do not become academic or jargon-heavy.",
-      "Keep the tone calm, thoughtful, precise, and humane.",
-      "Keep the writing practical, but avoid moralizing clichés.",
-      `Title seed: ${params.topic.titleSeed}`,
-      `Selected thinker or experiment: ${params.topic.thinkerOrExperiment}`,
-      `Angle: ${params.topic.angle}`,
-      `Behavior link: ${params.topic.behaviorLink}`,
-      `Practical direction: ${params.topic.practicalDirection}`,
+      "Revise this philosophical essay using the same curated philosophy library as the primary source base.",
+      "Do not make it friendlier. Make it more exact, more rigorous, and more alive.",
+      "Remove any trace of self-help tone, blog voice, motivational framing, empty uplift, or soft moral language.",
+      "Preserve the central problem, but sharpen the line of argument, the conceptual distinctions, and the conflict.",
+      "Keep at least one real disagreement or unresolved tension alive.",
+      "Do not smooth everything into agreement.",
+      "Use the source packets below to strengthen the essay's epistemic grounding.",
       "Return only valid JSON for the same schema.",
-      JSON.stringify(params.draft)
+      `Selected topic: ${params.topic.titleSeed}`,
+      `Thinker or experiment anchor: ${params.topic.thinkerOrExperiment}`,
+      `Working angle: ${params.topic.angle}`,
+      "",
+      "SOURCE PACKETS",
+      libraryContext.sourceNotes,
+      "",
+      "CURRENT DRAFT",
+      JSON.stringify({
+        title: params.draft.title,
+        subtitle: params.draft.subtitle,
+        hook: params.draft.hook,
+        sections: params.draft.sections,
+        takeaways: params.draft.takeaways,
+        reflection_exercise: params.draft.reflectionExercise
+      })
     ].join("\n\n"),
     text: {
       format: {
         type: "json_schema",
         name: "daily_philosophy_essay",
-        schema: DAILY_ESSAY_JSON_SCHEMA,
+        schema: MODEL_ESSAY_JSON_SCHEMA,
         strict: true
       }
     }
@@ -83,7 +99,8 @@ export async function refineDraft(params: {
 
   try {
     const parsed = JSON.parse(rawOutput);
-    const draft = DailyEssayDraftSchema.parse(parsed);
+    const modelDraft = ModelEssayDraftSchema.parse(parsed);
+    const draft = attachMetadataToDraft(modelDraft, params.topic);
 
     return {
       ok: true,

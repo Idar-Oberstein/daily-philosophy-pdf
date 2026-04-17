@@ -56,11 +56,6 @@ const styles = StyleSheet.create({
     fontFamily: "Times-Bold",
     marginBottom: 6
   },
-  sectionPurpose: {
-    fontSize: 10,
-    color: "#7b6243",
-    marginBottom: 6
-  },
   sectionBody: {
     fontSize: 11,
     lineHeight: 1.55
@@ -121,8 +116,7 @@ export function EssayDocument({
         {draft.sections.map((section) => (
           <View key={section.heading} style={styles.section}>
             <Text style={styles.sectionHeading}>{section.heading}</Text>
-            <Text style={styles.sectionPurpose}>{section.purpose}</Text>
-            <Text style={styles.sectionBody}>{section.body}</Text>
+            <Text style={styles.sectionBody}>{section.content}</Text>
           </View>
         ))}
 

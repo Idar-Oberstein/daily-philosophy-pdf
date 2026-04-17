@@ -216,7 +216,7 @@ export async function GET(request: Request) {
       openaiRequestId = firstAttempt.openaiRequestId;
     } else {
       openaiRequestId = firstAttempt.openaiRequestId;
-      const repaired = await repairDraft(firstAttempt.rawOutput, firstAttempt.message);
+      const repaired = await repairDraft(firstAttempt.rawOutput, firstAttempt.message, topic);
 
       if (!repaired.ok) {
         repairOpenaiRequestId = repaired.repairOpenaiRequestId;

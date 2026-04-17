@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { getDraftWordCount, normalizeEssayDraft } from "@/lib/content/normalize-length";
 import type { DailyEssayDraft } from "@/lib/openai/schema";
 
-function buildDraft(sectionBody: string): DailyEssayDraft {
+function buildDraft(sectionContent: string): DailyEssayDraft {
   return {
     title: "Practicing honesty under social pressure",
     subtitle: "Why small evasions shape character before they shape outcomes",
@@ -12,18 +12,15 @@ function buildDraft(sectionBody: string): DailyEssayDraft {
     sections: [
       {
         heading: "The first compromise",
-        purpose: "Explain how dishonesty begins in modest self-protective edits.",
-        body: sectionBody
+        content: sectionContent
       },
       {
         heading: "What this trains",
-        purpose: "Connect the behavior to wider habits of conduct.",
-        body: sectionBody
+        content: sectionContent
       },
       {
         heading: "What to do today",
-        purpose: "Turn the idea into action.",
-        body: sectionBody
+        content: sectionContent
       }
     ],
     takeaways: [

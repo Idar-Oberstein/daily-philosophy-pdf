@@ -5,11 +5,13 @@ import { ZodError } from "zod";
 
 import { getConfig } from "@/lib/config";
 import {
-  DAILY_ESSAY_JSON_SCHEMA,
-  DailyEssayDraftSchema,
+  attachMetadataToDraft,
+  MODEL_ESSAY_JSON_SCHEMA,
+  ModelEssayDraftSchema,
   type DailyEssayDraft,
   type ValidationFailureResult
 } from "@/lib/openai/schema";
+import type { TopicSeed } from "@/lib/topics/types";
 
 type RawModelResponse = {
   output_text?: string;
@@ -44,7 +46,8 @@ function validationMessage(error: unknown) {
 
 export async function repairDraft(
   invalidOutput: string,
-  error: unknown
+  error: unknown,
+  topic: TopicSeed
 ): Promise<{
   ok: true;
   draft: DailyEssayDraft;
@@ -59,6 +62,7 @@ export async function repairDraft(
     input: [
       "The prior response failed schema validation.",
       "Repair it against the same target schema.",
+      "Preserve the philosophical content, but force the output into the exact schema.",
       "Return only valid JSON for that schema.",
       `Validation error summary:\n${validationMessage(error)}`,
       `Invalid JSON candidate:\n${invalidOutput}`
@@ -67,7 +71,7 @@ export async function repairDraft(
       format: {
         type: "json_schema",
         name: "daily_philosophy_essay",
-        schema: DAILY_ESSAY_JSON_SCHEMA,
+        schema: MODEL_ESSAY_JSON_SCHEMA,
         strict: true
       }
     }
@@ -80,7 +84,8 @@ export async function repairDraft(
 
   try {
     const parsed = JSON.parse(rawOutput);
-    const draft = DailyEssayDraftSchema.parse(parsed);
+    const modelDraft = ModelEssayDraftSchema.parse(parsed);
+    const draft = attachMetadataToDraft(modelDraft, topic);
 
     return {
       ok: true,

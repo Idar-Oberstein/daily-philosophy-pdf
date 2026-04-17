@@ -6,7 +6,12 @@ export type PublishedEssayRecord = {
   title: string;
   subtitle: string;
   hook: string;
-  sections: DailyEssayDraft["sections"];
+  sections: Array<{
+    heading: string;
+    content?: string;
+    body?: string;
+    purpose?: string;
+  }>;
   takeaways: DailyEssayDraft["takeaways"];
   reflectionExercise: string;
   metadata: DailyEssayDraft["metadata"];

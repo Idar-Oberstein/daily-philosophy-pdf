@@ -28,22 +28,22 @@ function trimLongestSection(draft: DailyEssayDraft) {
   let longestIndex = 0;
 
   sections.forEach((section, index) => {
-    if (countWords(section.body) > countWords(sections[longestIndex].body)) {
+    if (countWords(section.content) > countWords(sections[longestIndex].content)) {
       longestIndex = index;
     }
   });
 
-  const sentences = splitSentences(sections[longestIndex].body);
+  const sentences = splitSentences(sections[longestIndex].content);
   if (sentences.length > 2) {
     sentences.pop();
     sections[longestIndex] = {
       ...sections[longestIndex],
-      body: sentences.join(" ")
+      content: sentences.join(" ")
     };
   } else {
     sections[longestIndex] = {
       ...sections[longestIndex],
-      body: truncateToWordBudget(sections[longestIndex].body, MAX_SECTION_WORDS - 20)
+      content: truncateToWordBudget(sections[longestIndex].content, MAX_SECTION_WORDS - 20)
     };
   }
 
@@ -63,7 +63,7 @@ function expandBestSection(draft: DailyEssayDraft) {
   ].join(" ");
   sections[index] = {
     ...sections[index],
-    body: `${sections[index].body} ${practicalSentence}`
+    content: `${sections[index].content} ${practicalSentence}`
   };
 
   return {
@@ -77,7 +77,7 @@ function clampSectionBodies(draft: DailyEssayDraft) {
     ...draft,
     sections: draft.sections.map((section) => ({
       ...section,
-      body: truncateToWordBudget(section.body, MAX_SECTION_WORDS)
+      content: truncateToWordBudget(section.content, MAX_SECTION_WORDS)
     }))
   };
 }
@@ -87,8 +87,7 @@ export function getDraftWordCount(draft: DailyEssayDraft) {
     (total, section) =>
       total +
       countWords(section.heading) +
-      countWords(section.purpose) +
-      countWords(section.body),
+      countWords(section.content),
     0
   );
 

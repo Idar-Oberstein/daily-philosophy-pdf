@@ -12,6 +12,7 @@ import type { PublishedEssayRecord } from "@/lib/archive/types";
 import { getConfigResult } from "@/lib/config";
 import { normalizeEssayDraft } from "@/lib/content/normalize-length";
 import { isAuthorizedCronRequest } from "@/lib/cron-auth";
+import { composeEssayEmail } from "@/lib/email/compose-email";
 import { sendEssayEmail } from "@/lib/email/send-email";
 import { logError, logInfo, logWarn } from "@/lib/logging";
 import { generateDraft } from "@/lib/openai/generate-draft";
@@ -152,6 +153,7 @@ export async function GET(request: Request) {
   const testRun = isTestRun(request);
   const mode = buildSendModeLabel(testRun);
   const configResult = getConfigResult();
+  const archiveUrl = new URL("/archive", request.url).toString();
 
   if (!configResult.ok) {
     const missingFields = missingConfigFields(configResult.error);
@@ -362,19 +364,17 @@ export async function GET(request: Request) {
       }
     }
 
+    const emailCopy = composeEssayEmail({
+      draft,
+      dateKey,
+      testRun,
+      archiveUrl
+    });
+
     const emailResult = await sendEssayEmail({
-      subject: testRun
-        ? `Daily Philosophy Test: ${draft.title}`
-        : `Daily Philosophy: ${draft.title}`,
-      text: [
-        testRun
-          ? `This is a manual test run of your daily philosophy essay.`
-          : `Today's essay is attached as a PDF.`,
-        "",
-        draft.subtitle,
-        "",
-        `Theme: ${draft.metadata.thinkerOrExperiment}`
-      ].join("\n"),
+      subject: emailCopy.subject,
+      text: emailCopy.text,
+      html: emailCopy.html,
       filename: testRun
         ? `philosophy-test-${dateKey}.pdf`
         : `philosophy-${dateKey}.pdf`,

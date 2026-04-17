@@ -9,6 +9,7 @@ export type EmailSendResult = {
 export async function sendEssayEmail(params: {
   subject: string;
   text: string;
+  html?: string;
   filename: string;
   pdfBuffer: Buffer;
   idempotencyKey: string;
@@ -26,6 +27,7 @@ export async function sendEssayEmail(params: {
       to: [config.DAILY_ESSAY_TO_EMAIL],
       subject: params.subject,
       text: params.text,
+      html: params.html,
       attachments: [
         {
           filename: params.filename,

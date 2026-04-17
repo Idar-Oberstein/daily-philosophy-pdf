@@ -206,6 +206,7 @@ If the library includes multiple traditions:
 Do not quote excessively.
 Paraphrase accurately.
 Do not fabricate scholarship.
+If the source packets do not support a stronger claim, do not make it.
 
 ================================
 STRUCTURE GUIDANCE
@@ -222,6 +223,36 @@ Use the following structure flexibly:
 
 The ending should not merely summarize.
 It should crystallize the problem in a stronger form.
+
+================================
+ADDITIONAL DISCIPLINE
+================================
+
+Make the essay feel written by someone who has actually read the relevant material.
+Do not merely sound intelligent; make discriminations that could only come from serious sources.
+
+At least one section must present the strongest opposing pressure on your main line of argument.
+Do not defeat that pressure too quickly.
+
+If you use moral psychology or institutional analysis, be specific about the mechanism:
+- self-serving reinterpretation
+- status anxiety
+- role morality
+- reciprocity pressure
+- norm drift
+- motivated blindness
+
+Avoid generic formulations like "research shows" unless you can state what kind of finding matters and why.
+
+The "takeaways" are not advice bullets.
+They are three hard-won claims or distinctions that survive the essay.
+They should read like compressed philosophical conclusions, not life tips.
+
+The "reflection_exercise" should not sound therapeutic or coaching-oriented.
+It should function like a disciplined thought experiment or a severe question the reader must put to themselves.
+
+Section headings should not be bland labels like "Why this matters" or "The bigger picture".
+They should carry argumentative pressure.
 
 ================================
 QUALITY FILTER
@@ -277,6 +308,7 @@ Selected topic:
 
 Use the title seed as a center of gravity, not as a slogan to repeat.
 Use the source packets below as your main knowledge base.
+Where useful, let the packets disagree with one another instead of smoothing them into one voice.
 
 ================================
 SOURCE PACKETS

@@ -187,25 +187,36 @@ export async function retrieveLibraryContext(topic: TopicSeed): Promise<Retrieve
   const shortlistedSources =
     rankedSources.length > 0 ? rankedSources : libraryCatalog.slice(0, 3);
 
-  const chunkCandidates: SourceChunk[] = [];
+  const bestChunkBySource = new Map<string, SourceChunk>();
 
   for (const source of shortlistedSources) {
     const text = await extractSourceText(source);
     const chunks = chunkText(text);
+    let bestChunk: SourceChunk | null = null;
 
     for (const chunk of chunks) {
       const score = scoreChunk(chunk, source, terms);
-      if (score > 0) {
-        chunkCandidates.push({
-          source,
-          excerpt: cleanExcerpt(chunk),
-          score
-        });
+      if (score <= 0) {
+        continue;
       }
+
+      const candidate = {
+        source,
+        excerpt: cleanExcerpt(chunk),
+        score
+      };
+
+      if (!bestChunk || candidate.score > bestChunk.score) {
+        bestChunk = candidate;
+      }
+    }
+
+    if (bestChunk) {
+      bestChunkBySource.set(source.id, bestChunk);
     }
   }
 
-  const selectedChunks = chunkCandidates
+  const selectedChunks = Array.from(bestChunkBySource.values())
     .sort((left, right) => right.score - left.score)
     .slice(0, 4);
 
@@ -227,7 +238,9 @@ export async function retrieveLibraryContext(topic: TopicSeed): Promise<Retrieve
   const sourceNotes = selectedChunks
     .map(
       (chunk, index) =>
-        `Source packet ${index + 1} — ${chunk.source.title}\n${chunk.excerpt}`
+        `Source packet ${index + 1} — ${chunk.source.title}\nRelevant concepts: ${chunk.source.tags.join(
+          ", "
+        )}\n${chunk.excerpt}`
     )
     .join("\n\n");
 

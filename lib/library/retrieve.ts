@@ -1,11 +1,18 @@
 import "server-only";
 
 import { readFile } from "node:fs/promises";
-
-import { PDFParse } from "pdf-parse";
+import { createRequire } from "node:module";
 
 import { libraryCatalog, type LibrarySource } from "@/lib/library/catalog";
 import type { TopicSeed } from "@/lib/topics/types";
+
+const require = createRequire(import.meta.url);
+const { PDFParse } = require("pdf-parse") as {
+  PDFParse: new (params: { data: Buffer }) => {
+    getText: () => Promise<{ text?: string }>;
+    destroy: () => Promise<void>;
+  };
+};
 
 type SourceChunk = {
   source: LibrarySource;

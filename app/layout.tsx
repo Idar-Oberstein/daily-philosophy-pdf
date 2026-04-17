@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { AuthorCredit } from "@/app/components/author-credit";
 import { LinkedInLink } from "@/app/components/linkedin-link";
 import { SiteBrand } from "@/app/components/site-brand";
@@ -18,23 +19,38 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <header className="site-header">
-          <div className="site-header-inner">
-            <div className="site-header-brand">
+        <header className="site-nav">
+          <div className="nav-inner">
+            <div className="nav-brand-wrap">
+              <SiteBrand compact />
+            </div>
+
+            <nav aria-label="Main navigation">
+              <ul className="nav-links">
+                <li>
+                  <Link href="/archive">Archive</Link>
+                </li>
+              </ul>
+            </nav>
+
+            <div className="nav-meta">
+              <AuthorCredit compact />
+              <LinkedInLink compact variant="ghost" />
+            </div>
+          </div>
+        </header>
+
+        <main>{children}</main>
+
+        <footer className="site-footer">
+          <div className="site-footer-inner">
+            <div className="footer-brand">
               <SiteBrand compact />
               <AuthorCredit compact />
             </div>
-            <LinkedInLink compact />
-          </div>
-        </header>
-        {children}
-        <footer className="site-footer">
-          <div className="site-footer-inner">
-            <div>
-              <p className="site-footer-title">Philo-Snacks</p>
-              <AuthorCredit compact />
+            <div className="footer-links">
+              <LinkedInLink variant="white" />
             </div>
-            <LinkedInLink />
           </div>
         </footer>
       </body>

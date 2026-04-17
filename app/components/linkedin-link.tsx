@@ -1,10 +1,23 @@
 const LINKEDIN_URL =
   "https://www.linkedin.com/in/raphaelcullmann/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BbLGn7KfHTEynPJ53yQWBzA%3D%3D";
 
-export function LinkedInLink({ compact = false }: { compact?: boolean }) {
+export function LinkedInLink({
+  compact = false,
+  variant = "default"
+}: {
+  compact?: boolean;
+  variant?: "default" | "ghost" | "white";
+}) {
+  const variantClass =
+    variant === "ghost"
+      ? " linkedin-link-ghost"
+      : variant === "white"
+        ? " linkedin-link-white"
+        : "";
+
   return (
     <a
-      className={`linkedin-link${compact ? " linkedin-link-compact" : ""}`}
+      className={`linkedin-link${compact ? " linkedin-link-compact" : ""}${variantClass}`}
       href={LINKEDIN_URL}
       target="_blank"
       rel="noreferrer"

@@ -1,65 +1,95 @@
 import Link from "next/link";
 
-import { AuthorCredit } from "@/app/components/author-credit";
 import { formatEssayDate } from "@/lib/archive/format";
 import { listPublishedEssays } from "@/lib/archive/store";
 
 export const metadata = {
   title: "Archive | Philo-Snacks",
-  description: "Browse every public Philo-Snacks essay and download each PDF."
+  description: "Every Philo-Snacks essay — readable online or downloadable as PDF."
 };
+
+function buildEssayTags(essay: Awaited<ReturnType<typeof listPublishedEssays>>[number]) {
+  return [essay.metadata.thinkerOrExperiment, essay.metadata.cluster].filter(Boolean);
+}
 
 export default async function ArchivePage() {
   const essays = await listPublishedEssays(100);
 
   return (
-    <main className="page-shell">
-      <section className="archive-header">
-        <p className="eyebrow">Archive</p>
-        <h1>The full Philo-Snacks archive</h1>
-        <AuthorCredit />
-        <p className="hero-text">
-          Every entry here can be read online or downloaded as a PDF. The aim
-          is not content volume, but a growing shelf of short, sharp philosophy.
-        </p>
+    <>
+      <section className="archive-hero">
+        <div className="archive-hero-inner">
+          <span className="section-label">Complete collection</span>
+          <h1>
+            The full
+            <br />
+            <em>Philo-Snacks</em> archive
+          </h1>
+          <p className="archive-hero-desc">
+            Every entry here can be read online or downloaded as a PDF. The aim
+            is not content volume, but a growing shelf of short, sharp
+            philosophy.
+          </p>
+        </div>
       </section>
 
-      {essays.length === 0 ? (
-        <div className="empty-card">
-          <p>No public essays have been published yet.</p>
+      <section className="archive-body">
+        <div className="archive-body-inner">
+          {essays.length === 0 ? (
+            <p className="empty-state">No essays yet — check back soon.</p>
+          ) : (
+            <div className="essays-list">
+              {essays.map((essay) => (
+                <article className="essay-card" key={essay.slug}>
+                  <div className="essay-card-date">{formatEssayDate(essay.dateKey)}</div>
+                  <h2 className="essay-card-title">{essay.title}</h2>
+                  {essay.subtitle ? (
+                    <p className="essay-card-subtitle">{essay.subtitle}</p>
+                  ) : null}
+                  <p className="essay-card-excerpt">{essay.hook}</p>
+                  <div className="essay-card-tags">
+                    {buildEssayTags(essay).map((tag) => (
+                      <span className="tag" key={tag}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="essay-card-actions">
+                    <Link href={`/essay/${essay.slug}`} className="btn-secondary">
+                      Read essay
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                    <a href={essay.pdfUrl} target="_blank" rel="noreferrer" className="btn-secondary">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden="true"
+                      >
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                      </svg>
+                      Download PDF
+                    </a>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="archive-list">
-          {essays.map((essay) => (
-            <article className="archive-item" key={essay.slug}>
-              <div className="archive-copy">
-                <p className="essay-date">{formatEssayDate(essay.dateKey)}</p>
-                <h2>{essay.title}</h2>
-                <p className="essay-subtitle">{essay.subtitle}</p>
-                <AuthorCredit compact />
-                <p className="essay-hook">{essay.hook}</p>
-                <div className="essay-meta">
-                  <span>{essay.metadata.thinkerOrExperiment}</span>
-                  <span>{essay.metadata.cluster}</span>
-                </div>
-              </div>
-              <div className="archive-actions">
-                <Link className="button-secondary" href={`/essay/${essay.slug}`}>
-                  Read essay
-                </Link>
-                <a
-                  className="button-secondary"
-                  href={essay.pdfUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Download PDF
-                </a>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
-    </main>
+      </section>
+    </>
   );
 }

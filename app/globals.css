@@ -144,14 +144,14 @@ ul {
 
 .site-brand-mark {
   flex: 0 0 auto;
-  width: 88px;
-  height: 88px;
-  filter: drop-shadow(0 16px 26px rgba(88, 58, 27, 0.18));
+  width: 152px;
+  height: 122px;
+  filter: drop-shadow(0 18px 28px rgba(88, 58, 27, 0.16));
 }
 
 .site-brand-compact .site-brand-mark {
-  width: 52px;
-  height: 52px;
+  width: 74px;
+  height: 60px;
   filter: none;
 }
 
@@ -161,45 +161,110 @@ ul {
   height: 100%;
 }
 
-.brand-tile {
-  fill: #6d4922;
+.brand-shadow {
+  fill: rgba(143, 100, 50, 0.12);
 }
 
-.brand-bite {
-  fill: #f7f1e7;
+.brand-book-fill,
+.brand-face,
+.brand-bubble,
+.brand-cup-fill {
+  fill: #fff4e6;
 }
 
-.brand-book,
-.brand-glyph {
+.brand-book-line,
+.brand-hair-line,
+.brand-face-line,
+.brand-cup-line,
+.brand-bulb-line,
+.brand-bubble-line {
   fill: none;
-  stroke: #fff8ef;
+  stroke: #6b3423;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.brand-book {
-  stroke-width: 6;
+.brand-book-line {
+  stroke-width: 7;
 }
 
-.brand-glyph {
-  stroke-width: 5;
+.brand-hair-line,
+.brand-face-line,
+.brand-cup-line,
+.brand-bulb-line,
+.brand-bubble-line {
+  stroke-width: 4.5;
+}
+
+.brand-book-fill {
+  stroke: #c98d39;
+  stroke-width: 2;
+}
+
+.brand-bulb-glow {
+  fill: rgba(255, 196, 72, 0.18);
+}
+
+.brand-bulb {
+  fill: #ffd45c;
+  stroke: #d8901d;
+  stroke-width: 3.5;
+}
+
+.brand-spark-line,
+.brand-star {
+  fill: #e29a18;
+  stroke: #e29a18;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.brand-face,
+.brand-beard,
+.brand-bubble,
+.brand-cup-fill {
+  stroke: #6b3423;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.brand-beard {
+  fill: #fffaf2;
 }
 
 .site-brand-copy {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.1rem;
 }
 
 .site-brand-name {
-  font-size: clamp(1.8rem, 3vw, 2.5rem);
-  line-height: 0.95;
-  font-weight: 700;
-  letter-spacing: -0.04em;
+  display: flex;
+  flex-direction: column;
+  line-height: 0.88;
+  font-weight: 800;
+  letter-spacing: -0.06em;
 }
 
-.site-brand-compact .site-brand-name {
-  font-size: 1.3rem;
+.site-brand-name-top,
+.site-brand-name-bottom {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-style: italic;
+}
+
+.site-brand-name-top {
+  color: #5b2718;
+}
+
+.site-brand-name-bottom {
+  color: #e1971e;
+}
+
+.site-brand-compact .site-brand-name-top,
+.site-brand-compact .site-brand-name-bottom {
+  font-size: 1.45rem;
 }
 
 .site-brand-tag {
@@ -242,13 +307,13 @@ ul {
 
 .linkedin-link svg {
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
 }
 
 .linkedin-link-compact svg {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
 }
 
 .linkedin-tile {
@@ -522,6 +587,11 @@ ul {
 
   .site-brand-compact .site-brand-tag {
     display: none;
+  }
+
+  .site-brand-mark {
+    width: 128px;
+    height: 104px;
   }
 
   .site-header-inner {

@@ -12,12 +12,12 @@ export function LinkedInLink({ compact = false }: { compact?: boolean }) {
       title="Raphael Cullmann on LinkedIn"
     >
       <svg viewBox="0 0 64 64" aria-hidden="true">
-        <rect x="4" y="4" width="56" height="56" rx="10" className="linkedin-tile" />
-        <circle cx="20" cy="20" r="5" className="linkedin-glyph" />
-        <path className="linkedin-glyph" d="M15 28h10v21H15z" />
+        <rect x="2" y="2" width="60" height="60" rx="12" className="linkedin-tile" />
+        <circle cx="18.5" cy="19" r="4.4" className="linkedin-glyph" />
+        <path className="linkedin-glyph" d="M14 28h9v22h-9z" />
         <path
           className="linkedin-glyph"
-          d="M31 28h9v3.5c2.2-2.5 4.9-4.1 8.9-4.1 8 0 11.1 5.2 11.1 13.4V49H50V42c0-4.4-1-7.4-4.9-7.4-3.6 0-5.2 2.4-5.2 7.4V49H31z"
+          d="M29 28h8.6v3c2-2.4 4.8-3.7 8.7-3.7 8 0 11.7 5 11.7 13.8V50h-9.3v-8.1c0-4.2-1.5-7.1-5-7.1-3.4 0-5.4 2.3-5.4 7.1V50H29z"
         />
       </svg>
       {!compact ? <span>LinkedIn</span> : null}

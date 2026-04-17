@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { AuthorCredit } from "@/app/components/author-credit";
+import { LinkedInLink } from "@/app/components/linkedin-link";
 import { SiteBrand } from "@/app/components/site-brand";
 import { formatEssayDate } from "@/lib/archive/format";
 import { listPublishedEssays } from "@/lib/archive/store";
@@ -14,6 +16,7 @@ export default async function HomePage() {
           <SiteBrand />
           <p className="eyebrow">Public Archive</p>
           <h1>Short philosophy with teeth</h1>
+          <AuthorCredit />
           <p className="hero-text">
             A living archive of elegant essays on ethics, character, fairness,
             power, and moral psychology. Every published entry can be read in
@@ -23,6 +26,7 @@ export default async function HomePage() {
             <Link className="button-primary" href="/archive">
               Browse the archive
             </Link>
+            <LinkedInLink />
           </div>
         </div>
         <aside className="hero-note">
@@ -55,6 +59,7 @@ export default async function HomePage() {
                 <p className="essay-date">{formatEssayDate(essay.dateKey)}</p>
                 <h3>{essay.title}</h3>
                 <p className="essay-subtitle">{essay.subtitle}</p>
+                <AuthorCredit compact />
                 <p className="essay-hook">{essay.hook}</p>
                 <div className="essay-meta">
                   <span>{essay.metadata.thinkerOrExperiment}</span>

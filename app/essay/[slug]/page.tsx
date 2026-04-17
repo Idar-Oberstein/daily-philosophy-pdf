@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AuthorCredit } from "@/app/components/author-credit";
+import { LinkedInLink } from "@/app/components/linkedin-link";
 import { formatEssayDate } from "@/lib/archive/format";
 import { getPublishedEssay } from "@/lib/archive/store";
 
@@ -46,6 +48,7 @@ export default async function EssayPage({ params }: EssayPageProps) {
           <p className="essay-date">{formatEssayDate(essay.dateKey)}</p>
           <h1>{essay.title}</h1>
           <p className="essay-subtitle essay-subtitle-large">{essay.subtitle}</p>
+          <AuthorCredit />
           <div className="essay-page-actions">
             <a className="button-primary" href={essay.pdfUrl} target="_blank" rel="noreferrer">
               Download PDF
@@ -53,6 +56,7 @@ export default async function EssayPage({ params }: EssayPageProps) {
             <Link className="button-secondary" href="/archive">
               Back to archive
             </Link>
+            <LinkedInLink />
           </div>
         </div>
 
@@ -88,6 +92,10 @@ export default async function EssayPage({ params }: EssayPageProps) {
           <p className="eyebrow">Reflection for Today</p>
           <p>{essay.reflectionExercise}</p>
         </section>
+
+        <div className="essay-author-footer">
+          <AuthorCredit />
+        </div>
       </article>
     </main>
   );

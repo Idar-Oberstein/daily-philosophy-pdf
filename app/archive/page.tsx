@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AuthorCredit } from "@/app/components/author-credit";
 import { formatEssayDate } from "@/lib/archive/format";
 import { listPublishedEssays } from "@/lib/archive/store";
 
@@ -16,6 +17,7 @@ export default async function ArchivePage() {
       <section className="archive-header">
         <p className="eyebrow">Archive</p>
         <h1>The full Philo-Snacks archive</h1>
+        <AuthorCredit />
         <p className="hero-text">
           Every entry here can be read online or downloaded as a PDF. The aim
           is not content volume, but a growing shelf of short, sharp philosophy.
@@ -34,6 +36,7 @@ export default async function ArchivePage() {
                 <p className="essay-date">{formatEssayDate(essay.dateKey)}</p>
                 <h2>{essay.title}</h2>
                 <p className="essay-subtitle">{essay.subtitle}</p>
+                <AuthorCredit compact />
                 <p className="essay-hook">{essay.hook}</p>
                 <div className="essay-meta">
                   <span>{essay.metadata.thinkerOrExperiment}</span>

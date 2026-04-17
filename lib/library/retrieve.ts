@@ -24,6 +24,14 @@ type RetrievedLibraryContext = {
 
 const sourceTextCache = new Map<string, Promise<string>>();
 
+function decodePdfToken(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 function tokenize(text: string) {
   return Array.from(
     new Set(
@@ -84,7 +92,7 @@ async function extractSourceText(source: LibrarySource) {
         const text = pages
           .flatMap((page: PageNode) => page.Texts ?? [])
           .flatMap((textNode: TextNode) => textNode.R ?? [])
-          .map((run: TextRun) => decodeURIComponent(run.T ?? ""))
+          .map((run: TextRun) => decodePdfToken(run.T ?? ""))
           .join(" ");
 
         resolve(text.replace(/\u0000/g, " ").trim());

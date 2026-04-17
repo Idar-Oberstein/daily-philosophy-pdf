@@ -7,9 +7,13 @@ import type { PublishedEssayRecord } from "@/lib/archive/types";
 const archiveIndexKey = "archive:essay-slugs";
 const archiveRecordKey = (slug: string) => `archive:essay:${slug}`;
 
-function parseRecord(rawEntry: string | null) {
+function parseRecord(rawEntry: string | PublishedEssayRecord | null) {
   if (!rawEntry) {
     return null;
+  }
+
+  if (typeof rawEntry === "object") {
+    return rawEntry as PublishedEssayRecord;
   }
 
   try {
@@ -31,7 +35,7 @@ export async function upsertPublishedEssay(record: PublishedEssayRecord) {
 
 export async function getPublishedEssay(slug: string) {
   const redis = getRedis();
-  const rawEntry = await redis.get<string>(archiveRecordKey(slug));
+  const rawEntry = await redis.get<string | PublishedEssayRecord>(archiveRecordKey(slug));
   return parseRecord(rawEntry);
 }
 

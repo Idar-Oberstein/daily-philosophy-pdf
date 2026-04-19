@@ -75,9 +75,9 @@ function clusterClass(value: string) {
 
 function TensionDiagram({ activeIndex }: { activeIndex: number }) {
   const points = [
-    { x: 50, y: 12, label: "Duty" },
-    { x: 15, y: 76, label: "Consequence" },
-    { x: 85, y: 76, label: "Character" }
+    { x: 50, y: 18, label: "Duty" },
+    { x: 20, y: 74, label: "Consequence" },
+    { x: 80, y: 74, label: "Character" }
   ];
   const scene = tensionScenes[activeIndex];
   const [start, end] = scene.pair;
@@ -85,7 +85,7 @@ function TensionDiagram({ activeIndex }: { activeIndex: number }) {
   const b = points[end];
 
   return (
-    <svg viewBox="0 0 100 100" className="tension-diagram" aria-hidden="true">
+    <svg viewBox="-10 -8 120 116" className="tension-diagram" aria-hidden="true">
       <defs>
         <radialGradient id="tensionGlow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#a779ff" stopOpacity="0.95" />

@@ -64,14 +64,18 @@ export function buildConstellationNodes(
     return [];
   }
 
-  const radiusX = 38;
-  const radiusY = 30;
+  const radiusX = 31;
+  const radiusY = 24;
   const centerX = 50;
   const centerY = 52;
 
   return entries.slice(0, 14).map((entry, index, array) => {
     const angle = (-Math.PI / 2) + (index / Math.max(array.length, 1)) * (Math.PI * 2);
     const ripple = index % 2 === 0 ? 1 : -1;
+    const size = 10 + (index % 4) * 3;
+    const rawX = centerX + Math.cos(angle) * (radiusX + ripple * 4);
+    const rawY = centerY + Math.sin(angle) * (radiusY + ripple * 3);
+    const safeMargin = size + 4;
 
     return {
       id: `${entry.slug}-${index}`,
@@ -80,9 +84,9 @@ export function buildConstellationNodes(
       cluster: entry.cluster,
       title: entry.title,
       problemLine: entry.problemLine,
-      x: centerX + Math.cos(angle) * (radiusX + ripple * 5),
-      y: centerY + Math.sin(angle) * (radiusY + ripple * 4),
-      size: 10 + (index % 4) * 3
+      x: Math.min(100 - safeMargin, Math.max(safeMargin, rawX)),
+      y: Math.min(100 - safeMargin, Math.max(safeMargin, rawY)),
+      size
     };
   });
 }
